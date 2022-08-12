@@ -1,12 +1,18 @@
+● There must be an automated process to ingest and store the data.
 The automated process is the script load.sh that runs csv.py which can be triggered by a Oozie job or crontab job, for a small pipeline like this one which has only 1 script this can esily be done using crontab. I am assuming the file will already be located inside the HDFS cluster so I can be read by all the nodes when we use paralelism, Nifi would be the solution would use to ingest the file into the cluster.
 
-Trips grouped together on the data extraction as follows:
+● Trips with similar origin, destination, and time of day should be grouped together.
 select region,origin_coord,destination_coord,datetime,datasource from  [dataload].[dbo].[testtable]
 group by origin_coord, destination_coord, datetime, datasource, region
 order by datetime
 
-Weekly average of trips as follows:
+● Develop a way to obtain the weekly average number of trips for an area, defined by a
+bounding box (given by coordinates) or by a region.
 select region,datepart(wk, datetime) as week, count(*) from  [dataload].[dbo].[testtable]
 group by datepart(wk, datetime), region
 
+● The solution should be scalable to 100 million entries. It is encouraged to simplify the
+data by a data model. Please add proof that the solution is scalable.
 How is this scalable? Hadoop by definition is scalable and fully customized, depending on the size of your cluster you can use parallel processing to consume the csv file located on the distributed file system HDFS.
+
+The remaining Madatory Features can be seen on the code provided csv.py
