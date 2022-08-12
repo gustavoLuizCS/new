@@ -1,0 +1,12 @@
+The automated process is the script load.sh that runs csv.py which can be triggered by a Oozie job or crontab job, for a small pipeline like this one which has only 1 script this can esily be done using crontab. I am assuming the file will already be located inside the HDFS cluster so I can be read by all the nodes when we use paralelism, Nifi would be the solution would use to ingest the file into the cluster.
+
+Trips grouped together on the data extraction as follows:
+select region,origin_coord,destination_coord,datetime,datasource from  [dataload].[dbo].[testtable]
+group by origin_coord, destination_coord, datetime, datasource, region
+order by datetime
+
+Weekly average of trips as follows:
+select region,datepart(wk, datetime) as week, count(*) from  [dataload].[dbo].[testtable]
+group by datepart(wk, datetime), region
+
+How is this scalable? Hadoop by definition is scalable and fully customized, depending on the size of your cluster you can use parallel processing to consume the csv file located on the distributed file system HDFS.
