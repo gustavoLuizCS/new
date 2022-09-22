@@ -1,0 +1,98 @@
+import pandas as pd
+import pyodbc
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine
+
+conn = pyodbc.connect('Driver={SQL Server};'
+                      'Server=DESKTOP-PRULHA5;'
+                      'Database=PythonTest;'
+                      'Trusted_Connection=yes;')
+
+def load_data():
+    # Import CSV
+    data = pd.read_csv('candidates.csv', sep=';')
+    df = pd.DataFrame(data)
+    df.columns = df.columns.str.replace(' ', '')
+
+    cursor = conn.cursor()
+    # Create Table
+    cursor.execute('''
+            CREATE TABLE candidates (
+                FirstName nvarchar(50),
+                LastName nvarchar(50),
+                Email nvarchar(50),
+                ApplicationDate nvarchar(50),
+                Country nvarchar(100),
+                YOE nvarchar(50),
+                Seniority nvarchar(50),
+                Technology nvarchar(50),
+                CodeChallengeScore nvarchar(50),
+                TechnicalInterviewScore nvarchar(50),
+                )
+                   ''')
+
+    ## Insert DataFrame to Table
+    for row in df.itertuples():
+        cursor.execute('''INSERT INTO candidates (FirstName, LastName, Email, ApplicationDate, Country,YOE,Seniority,
+        Technology,CodeChallengeScore,TechnicalInterviewScore ) VALUES (?,?,?,?,?,?,?,?,?,?)''',
+                       row.FirstName,
+                       row.LastName,
+                       row.Email,
+                       row.ApplicationDate,
+                       row.Country,
+                       row.YOE,
+                       row.Seniority,
+                       row.Technology,
+                       row.CodeChallengeScore,
+                       row.TechnicalInterviewScore
+                       )
+    conn.commit()
+
+
+def read_data():
+    sql = "select FirstName, LastName, Email, ApplicationDate, Country,YOE,Seniority, Technology,CodeChallengeScore," \
+          "TechnicalInterviewScore from candidates where TechnicalInterviewScore >= 7"
+    data = pd.read_sql(sql, conn)
+    #data.groupby(['Technology']).sum().plot(kind='pie', y='Technology')
+    return data
+
+
+#    cursor = conn.cursor()
+#    sql_query = pd.read_sql('SELECT * FROM candidates', conn)
+#    df1 = pd.DataFrame(sql_query,
+#                       columns=['FirstName', 'LastName', 'Email', 'ApplicationDate', 'Country', 'YOE', 'Seniority',
+#                                'Technology', 'CodeChallengeScore', 'TechnicalInterviewScore'])
+#    print(df1)
+
+
+print(read_data())
+
+
+
+# with a prepared statement, use list/tuple/dictionary of parameters depending on DB
+#data = pd.read_sql(sql=sql, con=cnxn, params=query_params)
+
+
+USE [PythonTest]
+GO
+
+/****** Object:  Table [dbo].[candidates]    Script Date: 9/12/2022 10:10:52 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[candidates](
+	[FirstName] [nvarchar](50) NULL,
+	[LastName] [nvarchar](50) NULL,
+	[Email] [nvarchar](50) NULL,
+	[ApplicationDate] Date,
+	[Country] [nvarchar](100) NULL,
+	[YOE] [nvarchar](50) NULL,
+	[Seniority] [nvarchar](50) NULL,
+	[Technology] [nvarchar](50) NULL,
+	[CodeChallengeScore] [nvarchar](50) NULL,
+	[TechnicalInterviewScore] [nvarchar](50) NULL
+) ON [PRIMARY]
+GO
